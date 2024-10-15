@@ -1,0 +1,2 @@
+# shipboard
+A distributed clipboard
