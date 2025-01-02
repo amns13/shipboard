@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,17 +14,13 @@ func TestBroadcast(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/clip/", bytes.NewReader(body))
 	w := httptest.NewRecorder()
-	env, _ := env.GetEnv("redis://localhost:6379")
+	loadedEnv, _ := env.LoadEnv("postgresql://shipboard:shipboard@localhost:5432/", "redis://localhost:6379")
 
-	handler := Broadcast(env)
+	handler := Broadcast(loadedEnv)
 	handler(w, req)
 	res := w.Result()
-	defer res.Body.Close()
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("expected error to be nil, got %v", err)
-	}
-	if string(data) != "value" {
-		t.Errorf("expected value, got %v", string(data))
+
+	if res.StatusCode != http.StatusAccepted {
+		t.Errorf("expected value, got %d", res.StatusCode)
 	}
 }

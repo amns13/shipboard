@@ -1,3 +1,5 @@
+// Package main
+// This file contains the code for starting the http server.
 package main
 
 import (
@@ -23,19 +25,27 @@ func registerEndpoints(env *env.Env) {
 	http.HandleFunc("POST /clip/", api.Broadcast(env))
 }
 
-func main() {
+func loadEnvironent() (*env.Env, error) {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		return nil, err
 	}
-	redisUri := os.Getenv("REDIS_URI")
 
-	env, err := env.GetEnv(redisUri)
+	loadedEnv, err := env.LoadEnv(os.Getenv("POSTGRES_URI"), os.Getenv("REDIS_URI"))
+	if err != nil {
+		return nil, err
+	}
+	return loadedEnv, err
+}
+
+func main() {
+	loadedEnv, err := loadEnvironent()
 	if err != nil {
 		log.Fatalf("Error initializing environment: %v", err)
 	}
+	defer loadedEnv.Db.Close()
 
-	registerEndpoints(env)
+	registerEndpoints(loadedEnv)
 	startServer()
 }
