@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipboard</title>
+    <script src="/static/htmx.min.js"></script>
+</head>
+<body>
+    <h1>Shipboard</h1>
+    
+    <div style="margin-bottom: 20px;">
+        <a href="#" hx-delete="/logout/" hx-on::after-request="window.location.href='/login/'">Logout</a>
+    </div>
+    
+    <form hx-post="/broadcast/" hx-on::after-request="this.reset()">
+        <textarea name="content" placeholder="Enter clipboard content"></textarea>
+        <br>
+        <button type="submit">Broadcast</button>
+    </form>
+</body>
+</html>

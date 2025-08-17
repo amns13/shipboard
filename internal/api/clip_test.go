@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/amns13/shipboard/internal/env"
+	"github.com/amns13/shipboard/internal/conf"
 )
 
 func TestBroadcast(t *testing.T) {
@@ -14,7 +14,7 @@ func TestBroadcast(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/clip/", bytes.NewReader(body))
 	w := httptest.NewRecorder()
-	loadedEnv, _ := env.LoadEnv("postgresql://shipboard:shipboard@localhost:5432/", "redis://localhost:6379")
+	loadedEnv, _ := conf.LoadEnv("postgresql://shipboard:shipboard@localhost:5432/", "redis://localhost:6379")
 
 	handler := Broadcast(loadedEnv)
 	handler(w, req)

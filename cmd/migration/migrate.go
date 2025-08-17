@@ -41,7 +41,7 @@ LIMIT 1;
 `
 
 const InsertMigration = `
-INSERT INTO migrations(id, name) VALUES ($1, $2) returning *;
+INSERT INTO migrations(id, name) VALUES ($1, $2) RETURNING *;
 `
 
 func getLastMigration(ctx context.Context, dbpool *pgxpool.Pool) (*Migration, error) {

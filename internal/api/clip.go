@@ -2,23 +2,35 @@ package api
 
 import (
 	"context"
-	"log"
 	"net/http"
+	// "time"
 
-	"github.com/amns13/shipboard/internal/env"
+	"github.com/amns13/shipboard/internal/conf"
 )
 
-func Broadcast(env *env.Env) http.HandlerFunc {
+func Clip(env *conf.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		value := req.PostFormValue("value")
-		log.Printf("Broadcasting value %s", value)
+		err := env.Templates.ExecuteTemplate(w, "index.html", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func Broadcast(env *conf.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		// time.Sleep(1 * time.Second)
+		value := req.PostFormValue("content")
+		// Testing
+		env.Logger.Printf("Broadcasting value %s", value)
 
 		ctx := context.Background()
 		err := env.Rdb.Set(ctx, "value_1", value, 0).Err()
 		if err != nil {
-			log.Fatalf("Error while broadcasting clipboard: %v", err)
+			env.Logger.Printf("Error while broadcasting clipboard: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		w.WriteHeader(http.StatusAccepted)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
-
