@@ -11,7 +11,7 @@
         <a href="#" hx-delete="/logout/" hx-on::after-request="window.location.href='/login/'">Logout</a>
     </div>
     
-    <form hx-post="/broadcast/" hx-on::after-request="this.reset()">
+    <form hx-post="/clip/" hx-on::after-request="this.reset()">
         <textarea name="content" placeholder="Enter clipboard content"></textarea>
         <br>
         <button type="submit">Broadcast</button>

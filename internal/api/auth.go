@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"net/mail"
 	"time"
@@ -26,12 +25,12 @@ func Register(env *conf.Env) http.HandlerFunc {
 
 		exists, err := model.UserExists(env, email)
 		if err != nil {
-			log.Printf("Error occurred: %v", err)
+			env.Logger.Printf("Error occurred: %v", err)
 			http.Error(w, INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			return
 		}
 		if exists {
-			log.Printf("Email already exists: %v", email)
+			env.Logger.Printf("Email already exists: %v", email)
 			http.Error(w, "Email already exists", http.StatusBadRequest)
 			return
 		}
@@ -43,7 +42,7 @@ func Register(env *conf.Env) http.HandlerFunc {
 		// TODO: Randomly giving cost 14. Confirm an optimal value
 		passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 		if err != nil {
-			log.Printf("Error occurred while generating password hash: %v", err)
+			env.Logger.Printf("Error occurred while generating password hash: %v", err)
 			http.Error(w, INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			return
 		}
@@ -55,7 +54,7 @@ func Register(env *conf.Env) http.HandlerFunc {
 		}
 		_, err = userData.Create(env)
 		if err != nil {
-			log.Printf("Error occurred while creating user: %v", err)
+			env.Logger.Printf("Error occurred while creating user: %v", err)
 			http.Error(w, INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			return
 		}
@@ -67,7 +66,7 @@ func RegistrationForm(env *conf.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		err := env.Templates.ExecuteTemplate(w, "register.html", nil)
 		if err != nil {
-			log.Printf("Error occurred while rendering registration form: %v", err)
+			env.Logger.Printf("Error occurred while rendering registration form: %v", err)
 			http.Error(w, INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			return
 		}
@@ -85,10 +84,10 @@ func Login(env *conf.Env) http.HandlerFunc {
 		user, err := model.GetUserByEmail(env, email.Address)
 		if err != nil {
 			if err == pgx.ErrNoRows {
-				log.Printf("Email not found: %v", email.Address)
+				env.Logger.Printf("Email not found: %v", email.Address)
 				http.Error(w, "Invalid email or password", http.StatusBadRequest)
 			} else {
-				log.Printf("Error occurred while fetching user: %v", err)
+				env.Logger.Printf("Error occurred while fetching user: %v", err)
 				http.Error(w, INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			}
 			return
@@ -113,7 +112,7 @@ func Login(env *conf.Env) http.HandlerFunc {
 		}
 		sessionID, err := sessionStore.CreateSession(sessionData)
 		if err != nil {
-			log.Printf("Error occurred while creating user session: %v", err)
+			env.Logger.Printf("Error occurred while creating user session: %v", err)
 			http.Error(w, INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			return
 		}
@@ -135,7 +134,7 @@ func LoginForm(env *conf.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		err := env.Templates.ExecuteTemplate(w, "login.html", nil)
 		if err != nil {
-			log.Printf("Error occurred while rendering login form: %v", err)
+			env.Logger.Printf("Error occurred while rendering login form: %v", err)
 			http.Error(w, INTERNAL_SERVER_ERROR, http.StatusInternalServerError)
 			return
 		}
@@ -146,7 +145,7 @@ func Logout(env *conf.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		sessionID, ok := req.Context().Value(middleware.AuthSessionID).(string)
 		if !ok {
-			log.Println("Invalid session id")
+			env.Logger.Println("Invalid session id")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -155,7 +154,7 @@ func Logout(env *conf.Env) http.HandlerFunc {
 		}
 		err := sessionStore.Expire(sessionID)
 		if err != nil {
-			log.Printf("Error occurred while expiring session %s: %v", sessionID, err)
+			env.Logger.Printf("Error occurred while expiring session %s: %v", sessionID, err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}

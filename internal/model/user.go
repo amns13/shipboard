@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/amns13/shipboard/internal/conf"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -17,6 +18,7 @@ type UserCreator struct {
 
 type User struct {
 	Id        int32     `db:"id"`
+	Uid       uuid.UUID `db:"uid"`
 	CreatedAt time.Time `db:"created_at"`
 	UserCreator
 }
@@ -24,8 +26,8 @@ type User struct {
 // For now, we return everything and use returning. If for some hypothetical reason,
 // we need to scale, that can be done easily.
 const insertUserQuery = `
-INSERT INTO users (name, email, password_hash)
-VALUES (@name, @email, @password_hash)
+INSERT INTO users (uid, name, email, password_hash)
+VALUES (@uid, @name, @email, @password_hash)
 RETURNING *;
 `
 
@@ -35,13 +37,13 @@ SELECT EXISTS(SELECT 1 FROM users WHERE email = @email);
 
 // TODO: Some fields are unneeded. Keeping them for now.
 const userSelectFromEmailQuery = `
-SELECT id, email, password_hash, name, created_at
+SELECT id, uid, email, password_hash, name, created_at
 FROM users
 WHERE email = @email;
 `
 
 const userSelectFromIdQuery = `
-SELECT id, email, password_hash, name, created_at
+SELECT id, uid, email, password_hash, name, created_at
 FROM users
 WHERE id = @id;
 `
@@ -52,6 +54,7 @@ func (usr *UserCreator) Create(env *conf.Env) (*User, error) {
 		"name":          usr.Name,
 		"email":         usr.Email,
 		"password_hash": usr.PasswordHash,
+		"uid":           uuid.New(),
 	}
 	// Returned error will be handled while parsing returnedRows
 	returnedRows, _ := env.Db.Query(context.Background(), insertUserQuery, args)

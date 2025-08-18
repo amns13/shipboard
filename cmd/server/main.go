@@ -44,7 +44,7 @@ func registerEndpoints(mux *http.ServeMux, env *conf.Env) {
 
 	mux.Handle("DELETE /logout/", requestMiddleware(authMiddleware(http.HandlerFunc(api.Logout(env)))))
 	mux.Handle("GET /clip/", requestMiddleware(authMiddleware(http.HandlerFunc(api.Clip(env)))))
-	mux.Handle("POST /broadcast/", requestMiddleware(authMiddleware(http.HandlerFunc(api.Broadcast(env)))))
+	mux.Handle("POST /clip/", requestMiddleware(authMiddleware(http.HandlerFunc(api.Broadcast(env)))))
 }
 
 func loadEnvironment() (*conf.Env, error) {
